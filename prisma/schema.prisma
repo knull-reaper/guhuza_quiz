@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model level {
+  Level_Id     Int      @id @default(autoincrement())
+  Level_Title  String
+  Level_number Int
+  player       player[]
+}
+
+model milestone {
+  Milestone_Id          Int      @id @default(autoincrement())
+  Milestone_Title       String
+  Milestone_description String
+  UnlockingLevel        Int
+  Milestone_reward_message String
+  Milestone_Link String
+  Milestone_Button_CTA String
+  player                player[]
+}
+
+model player {
+  Player_ID    Int        @id @default(autoincrement())
+  Player_name  String
+  Playerpoint  Int
+  streak       Int
+  lastLogin    DateTime
+  Level_Id     Int?
+  Milestone_Id Int?
+  level        level?     @relation(fields: [Level_Id], references: [Level_Id], map: "Player_Level_Id_fkey")
+  milestone    milestone? @relation(fields: [Milestone_Id], references: [Milestone_Id], map: "Player_Milestone_Id_fkey")
+  
+  @@index([Level_Id], map: "Player_Level_Id_fkey")
+  @@index([Milestone_Id], map: "Player_Milestone_Id_fkey")
+  progress     Progress? // Relation to Progress model (one-to-one)
+}
+
+model Progress {
+  id              String   @id @default(cuid())
+  levelReached    Int
+  percentComplete Float
+  lastPlayedAt    DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  // Relation to player
+  playerId        Int      @unique // Foreign key to player, @unique makes it one-to-one
+  player          player   @relation(fields: [playerId], references: [Player_ID], onDelete: Cascade)
+}
