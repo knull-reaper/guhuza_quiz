@@ -1,9 +1,9 @@
 # Guhuza’s Brain Boost
 
-
-The Guhuza’s Brain Boost is an interactive game designed to engage users with job search-related questions. Players earn points for correct answers, compete on a leaderboard, and share scores on social media to increase visibility. 
+The Guhuza’s Brain Boost is an interactive game designed to engage users with job search-related questions. Players earn points for correct answers, compete on a leaderboard, and share scores on social media to increase visibility.
 
 ## Features
+
 - **Job Search Quiz**: Users answer job-related questions to earn points.
 - **Leaderboard**: Track and compare scores with other users.
 - **Social Sharing**: Share quiz results and achievements on social media.
@@ -12,9 +12,10 @@ The Guhuza’s Brain Boost is an interactive game designed to engage users with 
 - **Mobile-Friendly**: Fully responsive design for desktop, tablet, and mobile devices.
 
 ## Technologies Used
+
 - **Frontend**: React.js, Next.js, TypeScript
 - **Backend**: MySQL, Prisma
-- **Styling**: CSS, Bootstrap
+- **Styling**: Tailwind CSS
 
 ## Installation
 
@@ -22,24 +23,24 @@ To run the project locally, follow these steps:
 
 1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/your-username/guhuza-quiz-app.git
-    cd guhuza-quiz-app
-    ```
+   ```bash
+   git clone https://github.com/knull-reaper/guhuza_quiz.git
+   cd guhuza-quiz-app
+   ```
 
 2. Install dependencies:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 3. Set up environment variables as required (e.g., database connection details).
 
 4. Start the development server:
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
 5. Visit the app at `http://localhost:3000` to start playing!
 
