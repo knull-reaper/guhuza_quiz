@@ -2,23 +2,19 @@
 
 import React, { useEffect, useState } from 'react';
 
-// Define an interface for the expected progress data structure
-// This should match the structure returned by your /api/users/me/progress endpoint
 interface UserProgressData {
   id: string;
   levelReached: number;
   percentComplete: number;
-  lastPlayedAt: string; // Or Date, if you parse it
+  lastPlayedAt: string;
   playerId: number;
-  // Optionally include player details if your API returns them
   player?: {
     Player_name: string;
     Player_ID: number;
   };
-  // Add any other fields your API might return
 }
 
-// Interface for the API response when progress is not found
+// for the api response when progress is not found
 interface ProgressNotFoundResponse {
   message: string;
   progress: null;

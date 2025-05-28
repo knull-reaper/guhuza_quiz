@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   FaShareAlt,
   FaFacebook,
@@ -10,15 +10,13 @@ import {
 
 const ShareButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const popupRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef(null);
+  const websiteUrl = "https://guhuza.com/";
+  const text = encodeURIComponent("🎉 I just completed a quiz! Check it out: ");
 
-  const url = "https://guhuza.com";
-  const text = encodeURIComponent("🎯 I just finished the Guhuza Quiz! Try it out!");
-
-  // Close popup when clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      if (popupRef.current && !(popupRef.current as any).contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -36,38 +34,38 @@ const ShareButton = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-12 right-0 bg-white shadow rounded p-3 w-52 z-10">
-          <p className="text-sm text-gray-600 mb-2">Share your result:</p>
-          <div className="flex flex-col gap-2">
+        <div className="absolute top-12 right-0 bg-white shadow-md rounded p-3 w-48 z-10">
+          <p className="text-sm mb-2 text-gray-700">Share your achievement:</p>
+          <div className="flex flex-col space-y-2 text-sm">
             <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${url}`}
+              href={`https://www.facebook.com/sharer/sharer.php?u=${websiteUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-600 hover:underline"
+              className="flex items-center gap-2 text-blue-700"
             >
               <FaFacebook /> Facebook
             </a>
             <a
-              href={`https://twitter.com/intent/tweet?url=${url}&text=${text}`}
+              href={`https://twitter.com/intent/tweet?url=${websiteUrl}&text=${text}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-400 hover:underline"
+              className="flex items-center gap-2 text-blue-500"
             >
               <FaTwitter /> Twitter
             </a>
             <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${url}`}
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${websiteUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-700 hover:underline"
+              className="flex items-center gap-2 text-blue-600"
             >
               <FaLinkedin /> LinkedIn
             </a>
             <a
-              href={`https://api.whatsapp.com/send?text=${text} ${url}`}
+              href={`https://api.whatsapp.com/send?text=${text}${websiteUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-green-600 hover:underline"
+              className="flex items-center gap-2 text-green-600"
             >
               <FaWhatsapp /> WhatsApp
             </a>

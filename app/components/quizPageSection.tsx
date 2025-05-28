@@ -8,6 +8,7 @@ import LeaderBoard from "./leaderBoard";
 import { useContext } from "react";
 import { playerContext } from "../context/playerContext";
 import { setCookie } from "cookies-next";
+import ShareButton from "./ShareButton";
 type quizeType = {
   question: string;
   comment: string;
@@ -38,20 +39,18 @@ export default function QuizPageSection({ Quizes, levelNumber, levelTitle, playe
 
   useEffect(() => {
     if (answerChecked || timedOut) {
-      return; // Stop timer if answer is checked or time is out
+      return; // stop timer if answer is checked or time is out
     }
 
     if (timeLeft === 0) {
       setTimedOut(true);
-      handleScore(); // Auto-submit when time is out
+      handleScore(); // auto-submit when time is out
       return;
     }
 
     const timerId = setInterval(() => {
       setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
-
-    // Removed lowTime logic here, will handle styling directly in JSX
 
     return () => clearInterval(timerId);
   }, [timeLeft, answerChecked, questionNumber, timedOut]);
@@ -352,12 +351,7 @@ export default function QuizPageSection({ Quizes, levelNumber, levelTitle, playe
               </svg>
               Retry Same Lesson
             </button>
-            <button onClick={handleShareScore} className="quizSbtn flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-              </svg>
-              Share Score
-            </button>
+            <ShareButton/>
           </div>
 
         </div>
