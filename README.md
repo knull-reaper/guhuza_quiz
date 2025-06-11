@@ -56,18 +56,18 @@ To run the project locally, follow these steps:
 This project uses Prisma for database management. After cloning and installing dependencies, and after any changes to the `prisma/schema.prisma` file, run migrations:
 
 To apply existing migrations (or initialize the database if it's the first time):
-\`\`\`bash
+```bash
 npx prisma migrate deploy
-\`\`\`
+```
 
 To create a new migration after schema changes (during development):
-\`\`\`bash
+```bash
 npx prisma migrate dev --name your_migration_name
-\`\`\`
+```
 For the gamification features added, the following migration was created:
-\`\`\`bash
+```bash
 npx prisma migrate dev --name gamification
-\`\`\`
+```
 
 4. Start the development server:
 
