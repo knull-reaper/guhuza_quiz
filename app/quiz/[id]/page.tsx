@@ -4,12 +4,11 @@ import { fetchQuiz } from "@/utils/fQuiz";
 import QuizCard from "@/app/components/quizCard";
 import QuizPageSection from "@/app/components/quizPageSection";
 import fetchLevels from "@/utils/fLevels";
+// import QuizPageClientWrapper from "@/app/components/QuizPageClientWrapper"; // Import removed
 
 import { auth } from "@/auth";
 import fetchUser from "@/utils/fUser";
 import { redirect } from 'next/navigation'; 
-
-
 
 type quizeType = {
   question: string;
@@ -20,7 +19,6 @@ type quizeType = {
 type quizesType = {
   question: quizeType[];
 };
-
 
 interface PageProps {
   params: { id: string };
@@ -42,7 +40,6 @@ export default async function Page({ params }: PageProps) {
 
   const levelIdStrFromParams = params.id; 
 
-  
   const currentLevelData = levels.find(
     (level) => String(level.id) === levelIdStrFromParams
   );
@@ -70,32 +67,29 @@ export default async function Page({ params }: PageProps) {
       }
     }
 
-    
     if (userIdNumber !== undefined) {
       player = await fetchUser(userIdNumber, name, user?.email || "");
     }
 
-    
     if (!player || !player.name || player.name === "Anonymous") {
       redirect('/profile/update-username');
     }
     
   } else {
-    
-    
     redirect('/api/auth/signin'); 
   }
 
-
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-      {/* QuizPageSection will likely manage its own max-width and specific layout */}
-      <QuizPageSection
-        Quizes={Quizes}
-        levelNumber={levelIdStrFromParams} 
-        levelTitle={levelTitle}
-        player={player} 
-      />
-    </div>
+    // <QuizPageClientWrapper playerTotalScore={player?.totalScore ?? 0}> // Wrapper removed
+      <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+        {/* QuizPageSection will likely manage its own max-width and specific layout */}
+        <QuizPageSection
+          Quizes={Quizes}
+          levelNumber={levelIdStrFromParams} 
+          levelTitle={levelTitle}
+          player={player} 
+        />
+      </div>
+    // </QuizPageClientWrapper> // Wrapper removed
   );
 }

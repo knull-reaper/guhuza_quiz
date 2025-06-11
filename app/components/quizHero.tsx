@@ -1,14 +1,16 @@
 "use client"
 import React from 'react'
 import Image from 'next/image'
-import Pbtn from './buttons/primarybtn'
+import Pbtn from './buttons/primarybtn' // Will be replaced by a regular button for Start Quiz
 import ShareButton from './buttons/sharebtn'
+import { useRouter } from 'next/navigation'; // For navigation fallback if needed, or direct use
 
 interface QuizHeroProps {
   startLevelNumber: number;
+  onStartQuiz: () => void; // New prop
 }
 
-function QuizHero({ startLevelNumber }: QuizHeroProps) {
+function QuizHero({ startLevelNumber, onStartQuiz }: QuizHeroProps) {
   
   
   return (
@@ -28,7 +30,16 @@ function QuizHero({ startLevelNumber }: QuizHeroProps) {
 
         {/* Buttons */}
         <div className="flex justify-center md:justify-start space-x-4 intersect:motion-preset-slide-up motion-delay-200 intersect-once">
-          <Pbtn message="Start Quiz" toDestination={`quiz/${startLevelNumber}`} theme="dark" />
+          {/* Replaced Pbtn with a regular button for custom onClick logic */}
+          <button
+            type="button" // Added type
+            onClick={onStartQuiz}
+            className="relative inline-flex items-center justify-center p-0.5 text-sm font-bold rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white text-gray-900 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800" // Added dark:text-white
+          >
+            <span className="relative px-6 py-3 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent font-bold">
+              Start Quiz
+            </span>
+          </button>
           <ShareButton/>
         </div>
       </div>

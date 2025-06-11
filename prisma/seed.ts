@@ -13,17 +13,19 @@ async function main() {
 
   for (let i = 1; i <= numberOfLevels; i++) {
     const levelNumber = i;
-    let scoreRequired = 0;
-
+    let originalScoreRequired = 0;
     if (levelNumber > 1) {
-      scoreRequired = (levelNumber - 1) * 300;
+      originalScoreRequired = (levelNumber - 1) * 300;
     }
+
+    // Decrease the points required by 250, ensuring it's not negative
+    const adjustedScoreRequired = Math.max(0, originalScoreRequired - 250);
 
     const quizLevel = await prisma.quizLevel.create({
       data: {
         title: `Level ${levelNumber} Challenges`,
         number: levelNumber,
-        unlockScoreRequired: scoreRequired,
+        unlockScoreRequired: adjustedScoreRequired, // Use adjusted score
       },
     });
     console.log(

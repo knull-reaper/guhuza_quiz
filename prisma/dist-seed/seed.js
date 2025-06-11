@@ -5,35 +5,33 @@ const prisma = new client_1.PrismaClient();
 async function main() {
     var _a, _b;
     console.log(`Start seeding ...`);
-    // Clean up existing levels and quizzes to avoid conflicts if IDs are hardcoded
-    // Note: In production, you wouldn't typically delete like this.
-    // This is for easily re-runnable development seeding.
     await prisma.quiz.deleteMany({});
     await prisma.quizLevel.deleteMany({});
     console.log("Deleted existing quizzes and quiz levels.");
     const numberOfLevels = 10;
     for (let i = 1; i <= numberOfLevels; i++) {
         const levelNumber = i;
-        let scoreRequired = 0;
+        let originalScoreRequired = 0;
         if (levelNumber > 1) {
-            scoreRequired = (levelNumber - 1) * 500; // Example: Level 2 needs 500, Level 3 needs 1000, etc.
+            originalScoreRequired = (levelNumber - 1) * 300;
         }
+        // Decrease the points required by 250, ensuring it's not negative
+        const adjustedScoreRequired = Math.max(0, originalScoreRequired - 250);
         const quizLevel = await prisma.quizLevel.create({
             data: {
-                // id: levelNumber, // Let Prisma auto-generate QuizLevel IDs
                 title: `Level ${levelNumber} Challenges`,
                 number: levelNumber,
-                unlockScoreRequired: scoreRequired,
+                unlockScoreRequired: adjustedScoreRequired, // Use adjusted score
             },
         });
         console.log(`Created quiz level: ID ${quizLevel.id}, Number ${quizLevel.number}, Title "${quizLevel.title}", UnlockScore ${quizLevel.unlockScoreRequired}`);
         try {
             const quiz = await prisma.quiz.create({
                 data: {
-                    id: levelNumber, // Attempting to set Quiz ID to match level number for simplicity
+                    id: levelNumber,
                     title: `Quiz for Level ${levelNumber}`,
                     description: `Questions for level ${levelNumber}.`,
-                    quizLevelId: quizLevel.id, // Link to the QuizLevel created above
+                    quizLevelId: quizLevel.id,
                     questions: {
                         create: Array.from({ length: 10 }, (_, qIndex) => ({
                             text: `Level ${levelNumber} - Question ${qIndex + 1}?`,

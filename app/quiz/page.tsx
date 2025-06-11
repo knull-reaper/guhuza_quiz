@@ -1,23 +1,25 @@
 import React from "react";
-import Pbtn from "../components/buttons/primarybtn";
-import Image from "next/image";
-import WhyplaySection from "./whyplaySection";
-import QuizLevelSections from "../components/quizLevelSections";
-import LeaderBoard from "../components/leaderBoard";
-import ProfileHerosection from "../components/profileHerosection";
-import ShareButton from "../components/buttons/sharebtn";
-import QuizHero from "../components/quizHero";
-import fetchPlayers from "@/utils/fPlayers";
+// import Pbtn from "../components/buttons/primarybtn"; // Not directly used by QuizHomePage after refactor
+// import Image from "next/image"; // Not directly used by QuizHomePage after refactor
+// import WhyplaySection from "./whyplaySection"; // Moved to QuizHomeClientLogic
+// import QuizLevelSections from "../components/quizLevelSections"; // Not used
+// import LeaderBoard from "../components/leaderBoard"; // Not used
+// import ProfileHerosection from "../components/profileHerosection"; // Not used
+// import ShareButton from "../components/buttons/sharebtn"; // Moved to QuizHero
+// import QuizHero from "../components/quizHero"; // Moved to QuizHomeClientLogic
+import fetchPlayers from "@/utils/fPlayers"; // Still needed for initial data fetch
 import { auth } from "@/auth";
-import LogoutButton from "../components/buttons/logoutBtn";
-import LoginButton from "../components/buttons/loginBtn";
+// import LogoutButton from "../components/buttons/logoutBtn"; // Not used
+// import LoginButton from "../components/buttons/loginBtn"; // Not used
 import fetchUser from "@/utils/fUser";
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers"; // Not directly used
 import { redirect } from 'next/navigation'; 
 import fetchLevels from "@/utils/fLevels"; 
+// import QuizPageClientWrapper from "../components/QuizPageClientWrapper"; // Removed
+import QuizHomeClientLogic from "../components/QuizHomeClientLogic"; // Added
 
 async function QuizHomePage() {
-  const players = (await fetchPlayers()) || []; 
+  // const players = (await fetchPlayers()) || []; // players seems unused, can be removed if not needed by other logic
   const session = await auth();
   const allLevels = (await fetchLevels()) || []; 
   const sortedLevels = [...allLevels].sort((a, b) => a.number - b.number);
@@ -45,14 +47,8 @@ async function QuizHomePage() {
         user?.email || ""
       );
     }
-
-    
-    
     
     if (!player || !player.name || player.name === "Anonymous") {
-      
-      
-      
       redirect('/profile/update-username');
     }
 
@@ -60,59 +56,45 @@ async function QuizHomePage() {
 
     let startLevelNumber = 1; 
     if (player) {
+      // This logic determines the highest level unlocked
       for (let i = sortedLevels.length - 1; i >= 0; i--) {
         if (playerTotalScore >= sortedLevels[i].unlockScoreRequired) {
           startLevelNumber = sortedLevels[i].number;
           break; 
         }
       }
-      
+      // If no level is unlocked by score, but levels exist, default to the first level's number
+      // This also handles if playerTotalScore is 0 and they should start at level 1 (or the first defined level)
       if (startLevelNumber === 1 && sortedLevels.length > 0 && playerTotalScore < sortedLevels[0].unlockScoreRequired) {
+         // If their score doesn't meet the first level's requirement, they should still see the first level as their starting point.
+         // Or, if sortedLevels[0].number is not 1, use that.
         startLevelNumber = sortedLevels[0].number;
       }
-    } else {
-      
+    } else { // Should not happen if player is guaranteed by redirect, but as a fallback
       if (sortedLevels.length > 0) {
         startLevelNumber = sortedLevels[0].number;
       }
     }
-
     
     return (
-      <div className="min-h-screen bg-gray-50"> {/* Consistent page background */}
-        <QuizHero startLevelNumber={startLevelNumber} />
-        
-        <section className="py-12 sm:py-16 bg-white"> {/* Whyplay section with its own background */}
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <WhyplaySection />
-          </div>
-        </section>
-        
-        {/* Quiz Levels section REMOVED */}
-        {/* Leaderboard section REMOVED */}
-      </div>
+      <QuizHomeClientLogic 
+        playerTotalScore={playerTotalScore}
+        startLevelNumber={startLevelNumber}
+      />
     );
   }
 
-  
-  const playerTotalScore = 0; 
-  let startLevelNumber = 1;
+  // Guest user or user not logged in
+  const guestPlayerTotalScore = 0; 
+  let guestStartLevelNumber = 1;
   if (sortedLevels.length > 0) {
-    startLevelNumber = sortedLevels[0].number; 
+    guestStartLevelNumber = sortedLevels[0].number; 
   }
   return (
-    <div className="min-h-screen bg-gray-50"> {/* Consistent page background */}
-      <QuizHero startLevelNumber={startLevelNumber} />
-      
-      <section className="py-12 sm:py-16 bg-white"> {/* Whyplay section */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <WhyplaySection />
-        </div>
-      </section>
-      
-      {/* Quiz Levels section REMOVED */}
-      {/* Leaderboard section REMOVED */}
-    </div>
+    <QuizHomeClientLogic
+      playerTotalScore={guestPlayerTotalScore}
+      startLevelNumber={guestStartLevelNumber}
+    />
   );
 }
 
