@@ -23,12 +23,12 @@ The Guhuza’s Brain Boost is an interactive game designed to engage users with 
 
 Create a `.env.local` file in the root of the project and add the following environment variables:
 
-\`\`\`env
+```bash
 DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DATABASE_NAME"
 NEXTAUTH_URL="http://localhost:3000" # Or your production URL
 NEXTAUTH_SECRET="YOUR_VERY_SECRET_KEY_HERE" # Generate a strong secret key
 GUHUZA_API="YOUR_GUHUZA_API_ENDPOINT" # Base URL for the Guhuza member API
-\`\`\`
+```
 
 Replace placeholder values with your actual configuration. `NEXTAUTH_SECRET` can be generated using `openssl rand -base64 32`.
 
