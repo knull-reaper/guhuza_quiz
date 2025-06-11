@@ -10,7 +10,7 @@ type quizCardType = {
   setSelectedAnswer: any;
   checked: boolean;
   setAnsCorrect: any;
-  disabled?: boolean; // Added disabled prop
+  disabled?: boolean; 
 };
 
 export default function QuizCard({
@@ -21,7 +21,7 @@ export default function QuizCard({
   setSelectedAnswer,
   checked,
   setAnsCorrect,
-  disabled, // Added disabled to props destructuring
+  disabled, 
 }: quizCardType) {
   const handleOptionSelected = (key: number) => {
     setSelectedAnswer(key);
@@ -37,10 +37,11 @@ export default function QuizCard({
         }
         return "FquizButton after:content-['❌'] after:absolute md:after:right-10"; //incorrect selection
       }
-
-      return "selectedQBtn "; //just the selection
+      
+      return "selectedQBtn border-indigo-500 ring-2 ring-indigo-300 scale-105 "; 
     }
-    return "";
+    
+    return "border-gray-300 "; 
   };
   return (
     <div className=" m-0 p-0">
@@ -53,13 +54,15 @@ export default function QuizCard({
           <div key={key} className="w-full group relative"> {/* Added key={key} */}
             <button
               className={
-                setButtonStyle(key) +
-                `quizButton px-6 py-3 rounded-lg  transition-transform transform active:translate-y-1 text-gray-900  text-lg w-full text-left motion-preset-slide-up-md motion-preset-fade leading-normal`
-                // Added leading-normal to answer text
+                
+                
+                
+                setButtonStyle(key) + 
+                `quizButton px-6 py-4 rounded-xl border-2 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 ease-in-out transform active:translate-y-px text-gray-800 hover:text-indigo-600 text-lg w-full text-left leading-relaxed shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed motion-preset-slide-up-md motion-preset-fade`
               } 
               
               onClick={() => handleOptionSelected(key)}
-              disabled={checked || disabled} // Use the disabled prop
+              disabled={checked || disabled} 
             >
               {answer}
             </button>

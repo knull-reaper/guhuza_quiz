@@ -16,6 +16,21 @@ The Guhuza’s Brain Boost is an interactive game designed to engage users with 
 - **Frontend**: React.js, Next.js, TypeScript
 - **Backend**: MySQL, Prisma
 - **Styling**: Tailwind CSS
+- **Data Fetching**: SWR
+- **UI Components**: shadcn/ui (as per initial prompt context, though not explicitly added by me yet), NextTopLoader
+
+## Environment Variables
+
+Create a `.env.local` file in the root of the project and add the following environment variables:
+
+\`\`\`env
+DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DATABASE_NAME"
+NEXTAUTH_URL="http://localhost:3000" # Or your production URL
+NEXTAUTH_SECRET="YOUR_VERY_SECRET_KEY_HERE" # Generate a strong secret key
+GUHUZA_API="YOUR_GUHUZA_API_ENDPOINT" # Base URL for the Guhuza member API
+\`\`\`
+
+Replace placeholder values with your actual configuration. `NEXTAUTH_SECRET` can be generated using `openssl rand -base64 32`.
 
 ## Installation
 
@@ -34,7 +49,25 @@ To run the project locally, follow these steps:
    npm install
    ```
 
-3. Set up environment variables as required (e.g., database connection details).
+3. Set up environment variables as described in the "Environment Variables" section.
+
+### Database Migrations
+
+This project uses Prisma for database management. After cloning and installing dependencies, and after any changes to the `prisma/schema.prisma` file, run migrations:
+
+To apply existing migrations (or initialize the database if it's the first time):
+\`\`\`bash
+npx prisma migrate deploy
+\`\`\`
+
+To create a new migration after schema changes (during development):
+\`\`\`bash
+npx prisma migrate dev --name your_migration_name
+\`\`\`
+For the gamification features added, the following migration was created:
+\`\`\`bash
+npx prisma migrate dev --name gamification
+\`\`\`
 
 4. Start the development server:
 

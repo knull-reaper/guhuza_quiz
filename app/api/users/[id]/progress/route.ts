@@ -1,80 +1,82 @@
 import { NextResponse } from "next/server";
-import { auth } from "../../../../../auth"; // Corrected import path for auth from your auth.ts file
+import { auth } from "../../../../../auth";
 import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await auth(); // Use auth() to get the session
+  const session = await auth();
 
-  if (!session || !session.user || !session.user.memberId) {
-    // Check for session.user.memberId as per your auth.ts
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session || !session.user || !session.user.id) {
+    return NextResponse.json(
+      { message: "Unauthorized: Session or user ID missing." },
+      { status: 401 }
+    );
   }
 
-  let targetPlayerId: number;
+  let targetUserId: number;
+
+  const sessionUserIdStr = session.user.id;
+  const sessionUserIdNum = parseInt(sessionUserIdStr, 10);
+
+  if (isNaN(sessionUserIdNum)) {
+    return NextResponse.json(
+      { message: "Unauthorized: Invalid user ID in session." },
+      { status: 401 }
+    );
+  }
 
   if (params.id === "me") {
-    // session.user.memberId is already a number as per your auth.ts jwt and session callbacks
-    targetPlayerId = session.user.memberId;
+    targetUserId = sessionUserIdNum;
   } else {
-    const paramPlayerId = parseInt(params.id, 10);
-    if (isNaN(paramPlayerId)) {
+    const paramIdNum = parseInt(params.id, 10);
+    if (isNaN(paramIdNum)) {
       return NextResponse.json(
-        { message: "Invalid player ID format in URL" },
+        { message: "Invalid user ID format in URL." },
         { status: 400 }
       );
     }
-    // Optional: Implement admin check or ensure users can only fetch their own progress
-    // For now, allowing fetch if ID matches session user ID, or if it's 'me'
-    if (paramPlayerId !== session.user.memberId) {
-      // Compare with session.user.memberId
-      // If not admin and trying to access someone else's progress
-      // if (session.user.role !== 'admin') { // Assuming you have a role in your session
+
+    if (paramIdNum !== sessionUserIdNum) {
       return NextResponse.json(
         { message: "Forbidden: You can only access your own progress." },
         { status: 403 }
       );
-      // }
     }
-    targetPlayerId = paramPlayerId;
+    targetUserId = paramIdNum;
   }
 
   try {
     const userProgress = await prisma.progress.findUnique({
-      where: { playerId: targetPlayerId },
+      where: { userId: targetUserId },
       include: {
-        // Optionally include player details if needed by frontend
-        player: {
+        user: {
           select: {
-            Player_name: true,
-            Player_ID: true,
+            name: true,
+            id: true,
           },
         },
       },
     });
 
     if (!userProgress) {
-      // It's valid for a user to not have progress yet, return an empty state or specific structure
       return NextResponse.json(
         {
           message:
             "Progress not found for this user. They may not have played yet.",
-          progress: null, // Or a default progress object
-          // levelReached: 0, percentComplete: 0, lastPlayedAt: null
+          progress: null,
         },
         { status: 200 }
-      ); // 200 or 404 depends on how you want to treat "no progress"
+      );
     }
 
     return NextResponse.json(userProgress, { status: 200 });
   } catch (error) {
     console.error("Error fetching progress:", error);
-    // It's good practice to avoid leaking raw error messages to the client
+
     let errorMessage = "Internal Server Error";
     if (error instanceof Error) {
-      // errorMessage = error.message; // Be cautious with this in production
     }
     return NextResponse.json(
       {

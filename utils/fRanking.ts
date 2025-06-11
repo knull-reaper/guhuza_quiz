@@ -1,19 +1,12 @@
-import prisma from "@/lib/prisma"
-type fetchRankType = { 
-   
-    playerpoint : number
-}
+import prisma from "@/lib/prisma";
 
-
-const fetchRank = async( playerpoint: number)=> { 
-const rank = await prisma.player.count({ 
-where : { 
-    Playerpoint : { gt:playerpoint}
-}
-
-}) +1
-return rank
-
-
-}
-export default fetchRank
+const fetchRank = async (playerpoint: number) => {
+  const rank =
+    (await prisma.user.count({
+      where: {
+        totalScore: { gt: playerpoint },
+      },
+    })) + 1;
+  return rank;
+};
+export default fetchRank;

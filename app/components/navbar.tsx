@@ -30,12 +30,12 @@ function Navbar() {
             <span className="text-white hover:underline">Profile</span>
           </Link>
           <a href="https://guhuza.com/" target="_blank" >
-            <p className="text-white hover:underline flex justify-center gap-1 group">Guhuza <Image
+            <p className="text-white hover:underline flex items-center gap-1.5 group">Guhuza <Image
                               src="/icons/AnotherWebsite.svg"
-                              className="transition-transform duration-300  group-hover:rotate-12"
-                              alt=""
-                              width={20}
-                              height={20}
+                              className="transition-transform duration-300 group-hover:rotate-12"
+                              alt="External link"
+                              width={16}
+                              height={16}
                             /></p>
           </a>
         </div>
@@ -101,12 +101,12 @@ function Navbar() {
             <span className="text-white hover:underline">Profile</span>
           </Link>
           <a href="https://guhuza.com/" target="_blank" >
-            <p className="text-white hover:underline flex justify-center gap-1 group">Guhuza <Image
+            <p className="text-white hover:underline flex items-center justify-center gap-1.5 group">Guhuza <Image
                               src="/icons/AnotherWebsite.svg"
-                              className="transition-transform duration-300  group-hover:rotate-12"
-                              alt=""
-                              width={20}
-                              height={20}
+                              className="transition-transform duration-300 group-hover:rotate-12"
+                              alt="External link"
+                              width={16}
+                              height={16}
                             /></p>
           </a>
           </div>

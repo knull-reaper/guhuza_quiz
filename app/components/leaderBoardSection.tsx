@@ -26,7 +26,8 @@ type milestoneType = {
   async function LeaderBoardSection() {
   
     return (
-      <div>
+      <div className="bg-white p-6 rounded-xl shadow-lg">
+        {/* The title "Leaderboard Standing" is now handled in app/profile/page.tsx */}
         <LeaderBoard/>
       </div>
     );

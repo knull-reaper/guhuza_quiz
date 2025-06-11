@@ -8,11 +8,19 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 
-const ShareButton = () => {
+interface ShareButtonProps {
+  score: number;
+  levelTitle: string;
+}
+
+const ShareButton: React.FC<ShareButtonProps> = ({ score, levelTitle }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popupRef = useRef(null);
-  const websiteUrl = "https://guhuza.com/";
-  const text = encodeURIComponent("🎉 I just completed a quiz! Check it out: ");
+  const websiteUrl = typeof window !== "undefined" ? window.location.origin : "https://guhuza.com"; 
+  
+  
+  const shareMessage = `🎉 I just scored ${score} on the "${levelTitle}" quiz on Guhuza Brain Boost! Check it out: `;
+  const text = encodeURIComponent(shareMessage);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -26,11 +34,15 @@ const ShareButton = () => {
 
   return (
     <div className="relative inline-block" ref={popupRef}>
+      {/* Teal to Lime for ShareButton */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="quizSbtn flex items-center gap-2"
+        className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
       >
-        <FaShareAlt /> Share
+        <span className="relative flex items-center justify-center gap-2 px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+          <FaShareAlt /> Share
+        </span>
       </button>
 
       {isOpen && (

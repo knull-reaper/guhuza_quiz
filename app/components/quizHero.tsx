@@ -4,12 +4,18 @@ import Image from 'next/image'
 import Pbtn from './buttons/primarybtn'
 import ShareButton from './buttons/sharebtn'
 
-function QuizHero() {
+interface QuizHeroProps {
+  startLevelNumber: number;
+}
+
+function QuizHero({ startLevelNumber }: QuizHeroProps) {
+  
+  
   return (
-    <div> <div className="container mx-auto px-4 py-16 mt-10 bg-white">
-    <div className="flex flex-col md:flex-row items-center">
-      {/* Text Section */}
-      <div className="md:w-1/2 space-y-6 text-center md:text-left">
+    <div className="container mx-auto px-4 py-16 bg-white shadow-lg rounded-lg"> {/* Added shadow and rounded-lg for a card-like feel */}
+      <div className="flex flex-col md:flex-row items-center">
+        {/* Text Section */}
+        <div className="md:w-1/2 space-y-6 text-center md:text-left md:pr-8 lg:pr-12"> {/* Added right padding for text section */}
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-gray-800 intersect:motion-preset-slide-up motion-delay-200 intersect-once">
           Level Up Your Job Search with Guhuza’s Brain Boost
         </h1>
@@ -22,7 +28,7 @@ function QuizHero() {
 
         {/* Buttons */}
         <div className="flex justify-center md:justify-start space-x-4 intersect:motion-preset-slide-up motion-delay-200 intersect-once">
-          <Pbtn message="Start Quiz" toDestination="quiz/1" theme="dark" />
+          <Pbtn message="Start Quiz" toDestination={`quiz/${startLevelNumber}`} theme="dark" />
           <ShareButton/>
         </div>
       </div>
@@ -35,11 +41,11 @@ function QuizHero() {
           className="rounded-md shadow-lg w-full hidden lg:max-w-lg md:block intersect:motion-preset-blur-right-sm motion-delay-200 intersect-once "
           width={500}
           height={300}
-          priority // Add priority for above-the-fold images
+          priority 
         />
       </div>
     </div>
-  </div></div>
+  </div>
   )
 }
 

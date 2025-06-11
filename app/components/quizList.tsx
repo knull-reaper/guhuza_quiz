@@ -1,59 +1,102 @@
-
-
 import React from "react";
 import QuizLevelCard from "./quizLevelCard";
-import fetchPlayers from "@/utils/fPlayers";
 
-type levelType = {
-  Level_Id: number;
-  Level_Title: string;
-  Level_number: number;
+
+
+type QuizLevelType = {
+  id: number;
+  title: string;
+  number: number;
+  unlockScoreRequired: number; 
+  
 };
-type levelsType = levelType[];
 
-async function QuizList({ allLevels, cutEnding = true, playerLevel }: { allLevels: levelsType; cutEnding: boolean , playerLevel : number}) {
- 
- 
+interface QuizListProps {
+  allLevels: QuizLevelType[];
+  cutEnding?: boolean; 
+  playerTotalScore: number; 
+}
 
-  const displayLevel = playerLevel 
+async function QuizList({ allLevels, cutEnding = true, playerTotalScore }: QuizListProps) {
+  
+  const sortedLevels = [...allLevels].sort((a, b) => a.number - b.number);
+  
+  let levelsToDisplay: QuizLevelType[] = [];
 
-  const filteredLevels = allLevels
-    .filter((level: levelType) => level.Level_Id <= displayLevel) 
-    .sort((a, b) => b.Level_Id - a.Level_Id);
+  if (cutEnding) {
+    let highestUnlockedLevel: QuizLevelType | undefined = undefined;
+    
+    for (let i = sortedLevels.length - 1; i >= 0; i--) {
+      if (playerTotalScore >= sortedLevels[i].unlockScoreRequired) {
+        highestUnlockedLevel = sortedLevels[i];
+        break; 
+      }
+    }
 
-  const endingPoint = cutEnding ? (filteredLevels[0]?.Level_Id ?? 4) - 3 : 0; 
-
-  const isBrowser = () => typeof window !== "undefined";
-
-  function scrollToTop() {
-    if (!isBrowser()) return;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (highestUnlockedLevel) {
+      levelsToDisplay = [highestUnlockedLevel];
+    } else {
+      
+      if (sortedLevels.length > 0) {
+        levelsToDisplay = [sortedLevels[0]];
+      } else {
+        levelsToDisplay = []; 
+      }
+    }
+  } else {
+    
+    levelsToDisplay = sortedLevels;
   }
 
+  
+  let playerMaxUnlockedLevelNum = 0;
+  for (const l of sortedLevels) {
+      if (playerTotalScore >= l.unlockScoreRequired) {
+          playerMaxUnlockedLevelNum = Math.max(playerMaxUnlockedLevelNum, l.number);
+      }
+  }
+
+  if (levelsToDisplay.length === 0) {
+    return (
+      <div className="text-center py-6 text-gray-500">
+        <p>No quiz levels are currently available.</p>
+        <p className="text-sm mt-1">Please check back later or contact support if you believe this is an error.</p>
+      </div>
+    );
+  }
+
+  
+  
+  
+  const listContainerClasses = cutEnding 
+    ? "flex justify-center" 
+    : "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8";
+
   return (
-    
-    <div className="">
+    <div className={listContainerClasses}>
+      {levelsToDisplay.map((level: QuizLevelType) => {
+        const isLocked = playerTotalScore < level.unlockScoreRequired;
+        
+        
+        return (
+          <QuizLevelCard
+            key={level.id}
+            levelNumber={level.number}
+            levelLink={isLocked ? undefined : `/quiz/${level.number}`} 
+            levelName={level.title}
+            currentLevel={playerMaxUnlockedLevelNum} 
+            isLocked={isLocked}
+            unlockScoreRequired={level.unlockScoreRequired}
+            playerScore={playerTotalScore}
+          />
+        );
+      })}
 
-      {filteredLevels.map(
-        (level: levelType) =>
-          level.Level_Id > endingPoint && (
-            <QuizLevelCard
-              key={level.Level_Id}
-              levelNumber={level.Level_Id}
-              levelLink={`quiz/${level.Level_Id}`}
-              levelName={level.Level_Title}
-              currentLevel={displayLevel} 
-            />
-          )
-      )}
-
-      {!cutEnding && (
+      {/* {!cutEnding && levelsToDisplay.length > 0 && (
         <div className="py-20 w-full flex">
-          <button className="underline text-center font-semibold mx-auto px-auto" >
-            Scroll To Top
-          </button>
+          <ScrollToTopButton /> 
         </div>
-      )}
+      )} */}
     </div>
   );
 }

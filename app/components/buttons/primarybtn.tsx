@@ -5,27 +5,29 @@ import { useRouter } from "next/router";
 type PbtnType = {
   message: string;
   toDestination: string;
-  theme?: "dark" | "light"; // Theme prop to control the button's appearance
+  theme?: "dark" | "light"; 
 };
 
 function Pbtn({ message, toDestination, theme = "light" }: PbtnType) {
-  // Dynamically determine styles based on the theme prop
-  const isDark = theme === "dark";
+  
+  const isDark = theme === "dark"; 
+
+  
+  const outerClasses = `relative inline-flex items-center justify-center p-0.5 text-sm font-bold rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800`;
+  const innerSpanClasses = `relative px-6 py-3 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent`;
+
+  
+  
+  
+  
+  
 
   return (
-    <div>
-      <Link
-        href={toDestination}
-        className={`relative inline-block px-6 py-3 text-sm font-bold rounded-lg shadow-lg transition-transform transform active:translate-y-1 
-        ${
-          isDark
-            ? "text-white bg-gray-800 border-b-4 border-gray-900 hover:bg-gray-700"
-            : "text-gray-900 bg-gray-100 border-b-4 border-gray-300 hover:bg-gray-200"
-        }`}
-      >
+    <Link href={toDestination} className={`${outerClasses} text-gray-900`}> {/* Explicitly set initial text color for outer link if needed before hover */}
+      <span className={`${innerSpanClasses} font-bold`}> {/* Apply font-bold to the message text */}
         {message}
-      </Link>
-    </div>
+      </span>
+    </Link>
   );
 }
 

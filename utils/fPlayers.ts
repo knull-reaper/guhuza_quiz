@@ -1,41 +1,29 @@
+import prisma from "@/lib/prisma";
+import type {
+  User as PrismaUser,
+  Milestone as PrismaMilestone,
+} from "@prisma/client";
 
-import prisma from "@/lib/prisma"
-
-type milestoneType = {
-    Milestone_Id: number,
-    Milestone_Title: string,
-    Milestone_description: string,
-    UnlockingLevel: number,
-    UploadRequired: boolean,
+interface FetchedUserWithMilestone extends PrismaUser {
+  milestone: PrismaMilestone | null;
 }
 
-type playerType = {
-    Player_ID: number,
-    Player_name: string,
-    Playerpoint: number,
-    streak: number,
-    lastLogin: Date,
-    Level_Id?: number,
-    Milestone_Id?: number,
+type FetchedUsersWithMilestones = FetchedUserWithMilestone[];
+
+async function fetchPlayers(): Promise<FetchedUsersWithMilestones | undefined> {
+  try {
+    const usersWithMilestones = await prisma.user.findMany({
+      include: {
+        milestone: true,
+      },
+    });
+
+    return usersWithMilestones as FetchedUsersWithMilestones;
+  } catch (e) {
+    console.error("Error fetching players with milestones:", e);
+
+    return undefined;
+  }
 }
 
-type Players = playerType[]
-
-
-async function fetchPlayers() {
-    try {
-        const players = await prisma.player.findMany(
-            {
-                include: {
-                    milestone: true
-                }
-            }
-        );
-        return players as Players
-
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-export default fetchPlayers
+export default fetchPlayers;

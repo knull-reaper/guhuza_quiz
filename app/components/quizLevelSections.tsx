@@ -13,47 +13,51 @@ type quizLevelSectionsType = {
   currentLevel: number;
 };
 
-type levelType = {
-  Level_Id: number;
-  Level_Title: string;
-  Level_number: number;
+
+type LevelDataType = {
+  id: number;
+  title: string;
+  number: number;
+  unlockScoreRequired: number;
+  
 };
 
-type levelsType = levelType[];
 type typeDisplayLevel = {
-  playerLevel :number
+  playerTotalScore :number 
 } 
 
-async function QuizLevelSections({playerLevel} :typeDisplayLevel ) {
+async function QuizLevelSections({playerTotalScore} :typeDisplayLevel ) { 
   
-  const levels: levelsType = (await fetchLevels()) || [];
+  const levels: LevelDataType[] = (await fetchLevels()) || [];
   
 
  
   return (
-    <div className="space-y-8 ">
-      
-      <div className=" container flex lg:gap-12 flex-wrap ">
-        <h2 className=" px-4 lg:py-1 bg-blue-400 text-4xl w-fit  rounded font-bold text-gray-900 lg:mb-10 mb-4">
-          Your Journey{" "}
-        </h2>
-        <p className="w-96">
-          You will unlock new level as you complete the top level. New
-          Challenges will appear as you grow
-        </p>
-      </div>
-      <div className=" container grid  lg:gap-16  gap-8  ">
-        <Suspense fallback = {<div>Loading....</div>}>
-        <QuizList  cutEnding = {true}
-  allLevels={levels} 
-  playerLevel = {playerLevel}
-/>
+    
+    <div className="p-4 rounded-xl max-w-2xl mx-auto"> 
+      {/* The title "Your Quiz Journey" is now handled in app/profile/page.tsx */}
+      {/* Removed redundant inner container mx-auto as parent div now has max-w-2xl mx-auto */}
+      <Suspense fallback={<div className="text-center py-10">Loading Quiz Levels...</div>}>
+        <QuizList
+            cutEnding={true} 
+            allLevels={levels}
+            playerTotalScore={playerTotalScore}
+          />
+        </Suspense>
 
-</Suspense>
-
-<Link href={"/allquiz"} className="font-semibold underline text-center">View All Quiz</Link>
-      </div>
-    </div>
+        {/* Ensure this button is appropriately spaced if QuizList renders minimal content */}
+        <div className="mt-6 text-center"> 
+          {/* Purple to Blue for "View All Quizzes" */}
+          <Link href={"/allquiz"} legacyBehavior>
+            <a className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800">
+              <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent font-semibold">
+                View All Quizzes
+              </span>
+            </a>
+          </Link>
+        </div>
+      {/* Closing div for the content that was previously inside "container mx-auto" */}
+    </div> 
   );
 }
 

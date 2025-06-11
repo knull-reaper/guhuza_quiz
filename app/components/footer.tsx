@@ -16,6 +16,7 @@ export default function Footer() {
               width={150}
               height={50}
               className="w-32"
+              style={{ height: 'auto' }} 
             />
             <p className="text-sm">Copyright ©2025 Guhuza.</p>
             <p className="text-sm">v3.4.4</p>
@@ -177,6 +178,7 @@ export default function Footer() {
                   width={150}
                   height={50}
                   className="w-32"
+                  style={{ height: 'auto' }} 
                 />
               </Link>
             </div>

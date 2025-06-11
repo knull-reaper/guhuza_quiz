@@ -23,38 +23,41 @@ function WhyplaySection() {
     },
   ];
 
+  
+  
+  
   return (
-    <section className="bg-gray-50 mt-20 py-16">
+    <div className="py-16"> 
       <div className="container mx-auto px-4">
-        <h2 className="text-center px-4 py-1 bg-blue-400 text-4xl w-fit m-auto rounded font-bold text-gray-900 mb-10 intersect:motion-preset-slide-up motion-delay-200 intersect-once">
-          Why Play the Guhuza’s Brain Boost ?
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-12 md:mb-16">
+          Why Play Guhuza’s Brain Boost?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {content.map((reason, index) => (
             <div
               key={index}
-              className={`flex flex-col items-center text-center p-6 rounded-lg   transition intersect:motion-preset-slide-up-lg motion-delay-${
+              className={`flex flex-col items-center text-center p-6 sm:p-8 rounded-xl bg-slate-50 shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 intersect:motion-preset-slide-up-lg motion-delay-${
                 index * 100
-              }  intersect-once  `}
+              }  intersect-once`}
             >
               <Image
                 src={reason.image}
-                alt={reason.title + " image"}
-                width={80}
-                height={80}
-                className="mb-4"
+                alt={reason.title + " icon"}
+                width={72} 
+                height={72}
+                className="mb-6" 
               />
-              <h4 className="text-2xl font-bold text-gray-800 mb-2">
+              <h4 className="text-xl sm:text-2xl font-semibold text-indigo-700 mb-3">
                 {reason.title}
               </h4>
-              <p className=" text-gray-600 text-justify">
+              <p className="text-gray-600 text-center leading-relaxed">
                 {reason.description}
               </p>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 

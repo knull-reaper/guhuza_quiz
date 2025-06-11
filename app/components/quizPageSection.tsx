@@ -1,31 +1,39 @@
 "use client";
-import React, { use, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import QuizCard from "./quizCard";
-import { div } from "framer-motion/client";
+
 import Image from "next/image";
-import { redirect, useRouter } from "next/navigation";
-import LeaderBoard from "./leaderBoard";
-import { useContext } from "react";
-import { playerContext } from "../context/playerContext";
-import { setCookie } from "cookies-next";
+import { useRouter } from "next/navigation"; 
 import ShareButton from "./ShareButton";
-type quizeType = {
+
+type quizeType = { 
   question: string;
   comment: string;
   test_answer: number;
   answers: string[];
 };
 
-export default function QuizPageSection({ Quizes, levelNumber, levelTitle, player }: any) {
+type PlayerDataType = {
+  id: number;
+  name: string | null;
+  totalScore: number;
+  quizLevelId: number | null;
+};
 
-  // Slice to get only the first 10 questions for the current level
-  // Make initialization robust in case Quizes is not an array
+interface QuizPageSectionProps {
+  Quizes: quizeType[];
+  levelNumber: string; 
+  levelTitle: string;
+  player: PlayerDataType | null; 
+}
+
+export default function QuizPageSection({ Quizes, levelNumber, levelTitle, player }: QuizPageSectionProps) {
   const questionsForCurrentLevel = Array.isArray(Quizes) ? Quizes.slice(0, 10) : [];
-  const len = questionsForCurrentLevel.length; // Actual number of questions for this set (max 10)
+  const len = questionsForCurrentLevel.length;
 
-  const router = useRouter()
-  const [score, setScore] = useState<number>(0);
-  const [questionNumber, setQuestionNumber] = useState(0); // This will be index within questionsForCurrentLevel
+  const router = useRouter();
+  const [score, setScore] = useState<number>(0); 
+  const [questionNumber, setQuestionNumber] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(-1);
   const [answerChecked, setAnswerChecked] = useState(false);
   const [ansCorrect, setAnsCorrect] = useState(false);
@@ -34,26 +42,22 @@ export default function QuizPageSection({ Quizes, levelNumber, levelTitle, playe
   const [timeLeft, setTimeLeft] = useState(30);
   const [timedOut, setTimedOut] = useState(false);
   
-  // Ensure quizer uses the sliced array
   var quizer: quizeType | undefined = questionsForCurrentLevel[questionNumber];
 
   useEffect(() => {
-    if (answerChecked || timedOut) {
-      return; // stop timer if answer is checked or time is out
+    if (answerChecked || timedOut || questionNumber >= len) { 
+      return; 
     }
-
     if (timeLeft === 0) {
       setTimedOut(true);
-      handleScore(); // auto-submit when time is out
+      handleScore(); 
       return;
     }
-
     const timerId = setInterval(() => {
       setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
-
     return () => clearInterval(timerId);
-  }, [timeLeft, answerChecked, questionNumber, timedOut]);
+  }, [timeLeft, answerChecked, questionNumber, timedOut, len]);
 
   const setDefault = () => {
     setSelectedAnswer(-1);
@@ -62,300 +66,291 @@ export default function QuizPageSection({ Quizes, levelNumber, levelTitle, playe
     setUsedHint(false);
     setRetried(false);
     setTimeLeft(30);
-    // setLowTime(false); // Removed lowTime state
     setTimedOut(false);
   };
 
   const handleNextLevel = async () => {
-    if( !player.Playerpoint ) { 
-      setCookie("tempScore", score)
-      router.push("/")
-    } else { 
-      const nextLevel = Number(levelNumber) + 1
-      const finalScore = score + player?.Playerpoint
-      const playerId = player?.Player_ID
-      const newlevel = Math.max(player.Level_Id, nextLevel)
-     
-      try {
-        const response = await fetch("/api/updateScore", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ playerId, finalScore, newlevel }),
-        });
-  
-        if (response.ok) {
-          const data = await response.json();
-          console.log("User updated in successfully!", data);
-        
-         
-          router.push(`/quiz/${newlevel}`)
-          console.log(data.newlevel)
-  
-  
-  
-        } else {
-          const errorData = await response.json();
-          console.error("Login failed:", errorData.message);
-  
-  
-        }
-      } catch (error) {
-        console.error("An error occurred during login:", error);
-  
-  
-      }
+    if (!player || player.id === undefined || player.id === null) { 
+      console.error("Save Score: Player data is missing or invalid (no ID). Cannot save score.");
+      alert("Error: Could not identify user. Please ensure you are logged in.");
+      router.push('/api/auth/signin'); 
+      return;
     }
-    
-  }
 
- 
+    const newTotalScore = (player.totalScore ?? 0) + score; 
+    const completedQuizId = Number(levelNumber); 
+    const currentAttemptScore = score; 
+
+    try {
+      const response = await fetch("/api/updateScore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          finalScore: newTotalScore, 
+          newlevel: completedQuizId,  
+          attemptScore: currentAttemptScore 
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Score updated successfully!", data);
+        
+        const nextQuizIdToShow = completedQuizId + 1; 
+        router.push(`/quiz/${nextQuizIdToShow}`);
+        router.refresh(); 
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to update score:", errorData.message);
+        alert(`Error saving score: ${errorData.message || 'An unknown error occurred.'}`);
+      }
+    } catch (error) {
+      console.error("An error occurred while saving score:", error);
+      alert("An unexpected error occurred while saving your score. Please try again.");
+    }
+  };
 
   const handleScore = () => {
     setAnswerChecked(true);
-
-    // Ensure quizer is defined before accessing its properties
     if (quizer && selectedAnswer == quizer.test_answer) {
+      setAnsCorrect(true); 
       if (retried) {
         setScore(score + 10);
       } else {
         setScore(score + 30);
       }
+    } else {
+      setAnsCorrect(false); 
     }
-   
   };
+
   const handleShareScore = () => {
-    console.log(score,player, levelTitle )
-  }
+    console.log(score, player, levelTitle);
+  };
 
   const handleNextQuestion = () => {
-    // Check against the length of the current 10-question set
-    if (questionNumber < len -1) { // Adjusted condition to allow finishing on the last question
+    if (questionNumber < len - 1) {
       setQuestionNumber(questionNumber + 1);
       setDefault();
     } else {
-      // If it's the last question of the 10-question set, mark as complete for this set
-      // The UI will then show the "Lesson Complete" screen
-      // To trigger this, we can set questionNumber to len, which will satisfy `questionNumber < len` as false
       setQuestionNumber(len); 
-      setDefault(); // Reset for safety, though lesson complete screen takes over
+      setDefault(); 
     }
   };
 
-  const handleRetry =() => { 
-    setScore(0)
-    setQuestionNumber(0)
-    // router.push("/quiz/"+ levelNumber) // This might need to re-fetch or re-slice if we are within a sub-level logic not implemented yet
-    // For now, just resetting current 10-question set
+  const handleRetry = () => { 
+    setScore(0);
+    setQuestionNumber(0);
     setDefault(); 
-    console.log("retried current 10-question set");
+    console.log("Retrying current lesson set");
+  };
+
+  if (!player) {
+    return (
+      <div className="text-center py-10">
+        <p>Loading user data or user not logged in...</p>
+      </div>
+    );
   }
 
-  // Check if all questions in the current 10-question set are done
   return questionNumber < len ? (
-    <div className="md:py-16 pt-8 pb-28">
-      {/* New Header Section - 2 Columns */}
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 items-start mb-24 gap-6"> {/* mb-20 (80px) to mb-24 (96px) */}
-        {/* Left Column: "Level X : Question Y" */}
-        <div className="md:col-span-1">
-          <h2 className="text-2xl font-semibold flex items-center space-x-2 rtl:space-x-reverse"> {/* Added rtl:space-x-reverse for RTL support if needed */}
-            <span className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md">
+    <div className="w-full max-w-4xl mx-auto py-8 md:py-12 px-4"> {/* Added max-width and centered */}
+      {/* Header: Level Info & Timer */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-center mb-10 sm:mb-16 gap-4 sm:gap-6">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold flex items-center space-x-3">
+            <span className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg">
               Level {levelNumber}
             </span>
-            <span className="text-gray-700">
-              : Question {questionNumber + 1}
-            </span>
+            <span className="text-gray-700">: {levelTitle}</span>
           </h2>
+          <p className="text-gray-600 mt-1">Question {questionNumber + 1} of {len}</p>
         </div>
-
-        {/* Right Column: Timer and "Time's up!" message */}
-        <div className="md:col-span-1 flex flex-col items-start md:items-end w-full md:pr-16">
-          <div 
-            className={`text-xl font-semibold p-4 rounded-lg shadow-lg w-full md:w-auto md:min-w-[170px] text-center transition-colors duration-300
-              ${timedOut 
-                ? 'bg-red-500 text-white font-bold' 
-                : timeLeft <= 5 
-                  ? 'bg-red-200 text-red-700 animate-pulse font-bold' 
-                  : timeLeft <= 10 
-                    ? 'bg-orange-100 text-orange-700 animate-pulse' 
-                    : 'bg-yellow-50 text-yellow-700' // Default timer background
-              }`}
-          >
-            Time Left: {timeLeft}s
+        <div className="flex flex-col items-start sm:items-end">
+          <div className="relative">
+            <div 
+              className={`text-2xl sm:text-3xl font-bold p-4 sm:p-5 rounded-xl shadow-xl w-full sm:w-auto sm:min-w-[120px] text-center transition-all duration-300 ease-in-out transform group
+                ${timedOut 
+                  ? 'bg-red-700 text-white scale-105' 
+                  : timeLeft <= 5 
+                    ? 'bg-red-600 text-white animate-pulse scale-110' 
+                    : timeLeft <= 10 
+                      ? 'bg-yellow-500 text-white animate-pulse' 
+                      : 'bg-green-600 text-white' 
+                }`}
+            >
+              <span className="block font-mono tracking-wider">{String(timeLeft).padStart(2, '0')}</span>
+              <span className="block text-xs font-medium opacity-80 group-hover:opacity-100">SECONDS</span>
+            </div>
+            {/* Optional: Add a subtle ticking or border animation based on timeLeft */}
           </div>
           {timedOut && (
-            <p className="text-red-600 font-bold text-xl mt-2 w-full md:w-auto text-center md:text-right">Time's up!</p>
+            <p className="text-red-700 font-bold text-lg mt-2 w-full sm:w-auto text-center sm:text-right animate-bounce">Time's Up!</p>
           )}
         </div>
       </div>
 
-      <div className="container mt-0">
-        <div className=" flex  justify-start md:gap-20  ">
-          {/* Using a simpler condition based on quizer's existence, assuming quizer is correctly typed as potentially undefined */}
+      {/* Main Quiz Area: QuizCard & Mascot */}
+      <div className="flex flex-col md:flex-row justify-between md:gap-8 lg:gap-12">
+        <div className="flex-grow md:w-2/3"> {/* Quiz Card takes more space */}
           {quizer ? ( 
-            <div className="flex-1">
+            <>
               <QuizCard
-                Question={quizer.question} // Safe if quizer is confirmed by the condition
-                CorrectAns={quizer.test_answer} // Safe
+                Question={quizer.question}
+                CorrectAns={quizer.test_answer}
                 Answers={quizer.answers}
                 selectedAnswer={selectedAnswer}
                 setSelectedAnswer={setSelectedAnswer}
                 checked={answerChecked || timedOut}
                 setAnsCorrect={setAnsCorrect}
-                disabled={timedOut} // Disable interaction if timed out
+                disabled={timedOut}
               />
-
-              {/* buton section */}
-              <div className=" ">
-                <div className="mt-10 ">
-                  {answerChecked || timedOut ? (
-                    <div className="w-full ">
-                      {!ansCorrect && !timedOut ? ( // Show retry/display only if not correct and not timed out
-                        <div>
-                          <div className="flex gap-10">
-                            <button
-                              className="quizPbtn"
-                              onClick={() => {
-                                setSelectedAnswer(-1);
-                                setAnswerChecked(false);
-                                setRetried(true);
-                                // Reset timer for retry
-                                setTimeLeft(30);
-                                setTimedOut(false);
-                              }}
-                              disabled={usedHint || timedOut}
-                            >
-                              Retry
-                            </button>
-                            <button
-                              className="quizSbtn"
-                              onClick={() => {
-                                // Ensure quizer exists before accessing its properties
-                                if (quizer) {
-                                  setSelectedAnswer(quizer.test_answer);
-                                }
-                                setUsedHint(true);
-                                setAnswerChecked(true); // Mark as checked when displaying answer
-                              }}
-                              disabled={timedOut}
-                            >
-                              Display Answer
-                            </button>
-                          </div>
-                          <p className="mt-6 text-sm absolute leading-relaxed"> {/* Added leading-relaxed */}
-                            You can use Display Answer to force move to next
-                            question without any point
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-end">
+              {/* Action Buttons Area */}
+              <div className="mt-8">
+                {answerChecked || timedOut ? (
+                  <div className="w-full">
+                    {!ansCorrect && !timedOut ? (
+                      <div className="relative"> {/* Added relative for hint positioning */}
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          {/* Cyan to Blue for "Retry Question" */}
                           <button
-                            className="quizPbtn" 
-                            onClick={() => handleNextQuestion()}
+                            type="button"
+                            onClick={() => {
+                              setSelectedAnswer(-1); setAnswerChecked(false); setRetried(true); setTimeLeft(30); setTimedOut(false);
+                            }}
+                            disabled={usedHint || timedOut}
+                            className="flex-1 relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            {questionNumber < len - 1
-                              ? "Next Question"
-                              : "Finish Quiz"}
+                            <span className="relative w-full px-4 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                              Retry Question
+                            </span>
+                          </button>
+                          {/* Cyan to Blue for "Show Answer" */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (quizer) setSelectedAnswer(quizer.test_answer);
+                              setUsedHint(true); setAnswerChecked(true);
+                            }}
+                            disabled={timedOut}
+                            className="flex-1 relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            <span className="relative w-full px-4 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                              Show Answer
+                            </span>
                           </button>
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      className="quizPbtn"
-                      onClick={() => handleScore()}
-                      disabled={selectedAnswer === -1 || timedOut} 
-                    >
-                      Check Answer
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            // Optional: Render a loading state or null if quizer is not available
-            // This branch is new due to the more robust check
-            <div>Loading question...</div> 
-          )}
-          <div className=" hidden md:block flex-1/2 w-100">
-            {answerChecked || timedOut ? (
-              <div className="w-full ">
-                {!ansCorrect ? (
-                  <Image
-                    src={timedOut ? "/mascot/sadMascot.svg" : "/mascot/sadMascot.svg"} // could use a different mascot for timeout
-                    className="motion-preset-slide-left-md motion-preset-fade w-full" // Added w-full
-                    alt="Guhuza Mascot"
-                    height={100}
-                    width={200}
-                    style={{ height: 'auto' }} 
-                  />
+                        <p className="mt-3 text-xs text-gray-500"> {/* Removed absolute, simpler text hint */}
+                          Using "Show Answer" will not award points for this question.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex justify-end">
+                        {/* Green to Blue for "Next Question" / "Finish Quiz" */}
+                        <button
+                          type="button"
+                          onClick={() => handleNextQuestion()}
+                          className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          <span className="relative px-6 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                            {questionNumber < len - 1 ? "Next Question" : "Finish Quiz"}
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <Image
-                    src="/mascot/proudMascot.svg"
-                    className="motion-preset-slide-left-md motion-preset-fade w-full" // Added w-full
-                    alt="Guhuza Mascot"
-                    height={100}
-                    width={200}
-                    style={{ height: 'auto' }} 
-                  />
+                  <div className="flex justify-end">
+                    {/* Green to Blue for "Check Answer" */}
+                    <button
+                      type="button"
+                      onClick={() => handleScore()}
+                      disabled={selectedAnswer === -1 || timedOut}
+                      className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <span className="relative px-6 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                        Check Answer
+                      </span>
+                    </button>
+                  </div>
                 )}
               </div>
-            ) : (
-              <Image
-                className="motion-preset-slide-up-md motion-preset-fade w-full" // Added w-full
-                src="/mascot/greetingMascot.svg"
-                alt="Guhuza Mascot"
-                height={100}
-                width={200}
-                style={{ height: 'auto' }} 
-              />
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="text-center py-10 text-gray-500">Loading question...</div> 
+          )}
+        </div>
+        {/* Mascot Area */}
+        <div className="hidden md:flex md:w-1/3 flex-col items-center justify-center mt-8 md:mt-0">
+          {answerChecked || timedOut ? (
+            <Image
+              key={!ansCorrect || timedOut ? 'feedbackMascot' : 'greetingMascot'} 
+              src={!ansCorrect || timedOut ? "/mascot/sadMascot.svg" : "/mascot/proudMascot.svg"}
+              className="w-48 h-auto transition-all duration-500 ease-in-out transform scale-100 opacity-100"
+              alt="Guhuza Mascot Feedback"
+              width={192} 
+              height={192} 
+              
+              
+              
+              
+            />
+          ) : (
+            <Image
+              key="greetingMascot"
+              className="w-48 h-auto transition-all duration-500 ease-in-out transform scale-100 opacity-100" 
+              src="/mascot/greetingMascot.svg"
+              alt="Guhuza Mascot Greeting"
+              width={192}
+              height={192}
+            />
+          )}
         </div>
       </div>
     </div>
   ) : (
- 
-    <div className="md:py-16 py-8">
-      <div className="container">
-        <div className="flex  flex-col items-center">
-          <h1 className="title text-center">Lesson Complete !</h1>
-          <div className="flex flex-wrap-reverse justify-center gap-8 items-center">
-          <div className="flex  flex-col gap-8 mt-6 justify-center">
-            <div className="bg-yellow-50 rounded border-2 border-yellow-300 gap-4 flex flex-col items-center px-6 py-4">
-             
-              <p className="mt-4 text-xl"> ⭐PTS GAINED</p>
-              <h1 className="text-6xl font-bold">{score}</h1>
-            </div>
-            <div className="bg-blue-50 rounded border-2 border-blue-100   flex flex-col gap-4 items-center px-6 py-4">
-            
-              <p className="mt-4 text-xl"> 🏆TOTAL SCORE</p>
-              <h1 className="text-6xl font-bold">{player?.Playerpoint ? player?.Playerpoint +  score: score}</h1>
-            </div>
-          </div>
-          <Image src={"/mascot/proudMascot.svg"} className="mt-8" width={250} alt="Guhuza Bird" height={30} />
-
-          </div>
-          
-
-
-
-         
-          <button className="quizPbtn mt-20" onClick={handleNextLevel}>Save Score</button>
-
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-8">
-            <button className="quizSbtn flex items-center gap-2" onClick={handleRetry}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>
-              Retry Same Lesson
-            </button>
-            <ShareButton/>
-          </div>
-
+    
+    <div className="w-full max-w-2xl mx-auto py-12 md:py-16 px-4 text-center">
+      <h1 className="text-4xl sm:text-5xl font-bold text-gray-800 mb-6">Lesson Complete!</h1>
+      <Image src={"/mascot/proudMascot.svg"} className="mx-auto mb-8 w-48 sm:w-64 h-auto" width={250} alt="Guhuza Bird - Proud" height={250} />
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+        <div className="bg-yellow-100 border-2 border-yellow-300 rounded-xl p-6 shadow-lg">
+          <p className="text-xl font-semibold text-yellow-700 mb-2">⭐ Points Gained</p>
+          <h2 className="text-5xl sm:text-6xl font-bold text-yellow-600">{score}</h2>
         </div>
-       
+        <div className="bg-blue-100 border-2 border-blue-300 rounded-xl p-6 shadow-lg">
+          <p className="text-xl font-semibold text-blue-700 mb-2">🏆 Total Score</p>
+          <h2 className="text-5xl sm:text-6xl font-bold text-blue-600">{(player?.totalScore ?? 0) + score}</h2>
+        </div>
+      </div>
+      
+      {/* Green to Blue for "Save Score & Continue" */}
+      <button
+        type="button"
+        onClick={handleNextLevel}
+        className="w-full sm:w-auto relative inline-flex items-center justify-center p-0.5 mb-6 overflow-hidden text-lg font-semibold text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <span className="relative w-full sm:w-auto px-8 py-3 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+          Save Score & Continue
+        </span>
+      </button>
+      
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+        {/* Cyan to Blue for "Retry Same Lesson" */}
+        <button
+          type="button"
+          onClick={handleRetry}
+          className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <span className="relative flex items-center justify-center gap-2 px-6 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Retry Same Lesson
+          </span>
+        </button>
+        <ShareButton score={score} levelTitle={levelTitle} />
       </div>
     </div>
   );
